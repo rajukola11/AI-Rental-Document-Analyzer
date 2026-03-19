@@ -28,7 +28,6 @@ ALLOWED_MIME = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
 }
 
-# Local upload dir — used when real AWS creds are not configured
 LOCAL_UPLOAD_DIR = Path(__file__).resolve().parents[4] / "uploads"
 LOCAL_UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -41,25 +40,34 @@ def _validate_upload(file: UploadFile, size: int) -> None:
 
 
 def _store_file(contents: bytes, content_type: str, user_id: uuid.UUID) -> str:
-    """
-    Try S3 first. Fall back to local disk if AWS creds are not configured.
-    Returns a string key stored in documents.file_url.
-    """
     aws_dummy = settings.aws_access_key_id in ("", "your-aws-access-key", "dummy")
 
     if not aws_dummy:
         from app.services.s3_service import upload_file as s3_upload
         return s3_upload(io.BytesIO(contents), content_type, user_id)
 
-    # ── Local fallback ────────────────────────────────────────────────────────
     ext = ALLOWED_MIME[content_type]
     filename = f"{uuid.uuid4()}.{ext}"
     dest = LOCAL_UPLOAD_DIR / str(user_id)
     dest.mkdir(exist_ok=True)
     (dest / filename).write_bytes(contents)
     local_key = f"local://{user_id}/{filename}"
-    logger.info("Stored file locally (S3 not configured)", extra={"path": local_key})
+    logger.info("Stored file locally", extra={"path": local_key})
     return local_key
+
+
+def _queue_task(document_id: str) -> None:
+    """
+    Import celery_app lazily here so that os.environ is fully populated
+    by pydantic-settings before celery_app reads CELERY_BROKER_URL.
+    """
+    # Force settings to load first — this populates os.environ via pydantic
+    import os
+    os.environ.setdefault("CELERY_BROKER_URL", settings.celery_broker_url)
+    os.environ.setdefault("CELERY_RESULT_BACKEND", settings.celery_result_backend)
+
+    from app.workers.tasks import process_document
+    process_document.delay(document_id)
 
 
 @router.post(
@@ -89,10 +97,7 @@ async def upload_document(
     )
 
     increment_uploads(db, user_id)
-
-    # Queue background task
-    from app.workers.tasks import process_document
-    process_document.delay(str(doc.id))
+    _queue_task(str(doc.id))
 
     logger.info("Document uploaded, task queued", extra={"document_id": str(doc.id)})
 

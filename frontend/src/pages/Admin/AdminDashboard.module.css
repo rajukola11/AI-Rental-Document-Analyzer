@@ -1,0 +1,126 @@
+.page { max-width: 960px; }
+
+.pageHeader { margin-bottom: 28px; }
+.title { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
+.sub   { font-size: 13px; color: var(--text-muted); }
+
+.loading { padding: 60px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.statCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statValue {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  font-family: var(--font-mono);
+}
+.statLabel { font-size: 13px; color: var(--text-secondary); }
+.statSub   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.gridTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cardTitle {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+}
+
+.statusList, .riskList {
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+.statusRow {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.statusDot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+
+.statusLabel {
+  font-size: 13px; color: var(--text-secondary); width: 90px; flex-shrink: 0;
+}
+
+.statusVal {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  width: 28px; text-align: right; flex-shrink: 0;
+  font-family: var(--font-mono);
+}
+
+.statusBarTrack {
+  flex: 1; height: 4px;
+  background: var(--surface-2);
+  border-radius: 2px; overflow: hidden;
+}
+
+.statusBarFill {
+  height: 100%; border-radius: 2px;
+  transition: width 0.8s ease;
+}
+
+.divider {
+  height: 1px; background: var(--border); margin: 18px 0;
+}
+
+.perf { display: flex; gap: 24px; }
+.perfItem { display: flex; flex-direction: column; gap: 3px; }
+.perfVal   { font-size: 20px; font-weight: 600; color: var(--text-primary); font-family: var(--font-mono); }
+.perfLabel { font-size: 11px; color: var(--text-muted); }
+
+.quickActions {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.actionBtns { display: flex; gap: 10px; }
+
+.actionBtn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--text-secondary);
+  transition: all 0.15s;
+}
+.actionBtn:hover {
+  background: var(--accent-light);
+  border-color: var(--accent-muted);
+  color: var(--accent);
+}
