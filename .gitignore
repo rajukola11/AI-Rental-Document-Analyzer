@@ -1,0 +1,148 @@
+# ============================================
+# BACKEND (Python / FastAPI / Alembic)
+# ============================================
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Virtual Environment
+env/
+venv/
+.venv/
+ENV/
+.env.bak
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+
+# Alembic
+alembic.ini.bak
+
+# Logs
+*.log
+logs/
+logging/
+
+# Docker
+*.env.docker
+
+# Celery / Workers
+celerybeat-schedule
+celerybeat.pid
+*.pid
+
+# Redis dump
+dump.rdb
+
+# Coverage / Testing
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+test-results/
+
+# MyPy / Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Uploads / Generated files
+uploads/
+media/
+generated/
+
+# ============================================
+# FRONTEND (React / Vue / Angular)
+# ============================================
+
+# Dependencies
+frontend/node_modules/
+node_modules/
+
+# Build output
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/.nuxt/
+frontend/.output/
+
+# Cache
+frontend/.cache/
+frontend/.parcel-cache/
+*.local
+
+# Environment
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Package locks (keep one, ignore the other)
+# yarn.lock        # uncomment if using npm
+# package-lock.json # uncomment if using yarn
+
+# Testing
+frontend/coverage/
+.nyc_output/
+cypress/videos/
+cypress/screenshots/
+
+# ============================================
+# EDITORS & OS
+# ============================================
+
+# VSCode
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains (PyCharm, WebStorm)
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ============================================
+# MISC
+# ============================================
+*.bak
+*.swp
+*.swo
+*.tmp
+*.temp
+.cache/
