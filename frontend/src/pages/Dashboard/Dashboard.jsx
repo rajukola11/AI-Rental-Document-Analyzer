@@ -2,19 +2,21 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { documentsApi } from '../../api/client'
 import { useAuth } from '../../hooks/useAuth'
+import { useToast } from '../../components/ui/Toast'
+import { SkeletonTable } from '../../components/ui/Skeleton'
 import styles from './Dashboard.module.css'
 
 const STATUS_META = {
-  uploaded:   { label: 'Queued',     color: 'var(--text-muted)',   bg: 'var(--surface-2)' },
-  processing: { label: 'Analyzing',  color: 'var(--warning)',      bg: 'var(--warning-light)' },
-  completed:  { label: 'Completed',  color: 'var(--success)',      bg: 'var(--success-light)' },
-  failed:     { label: 'Failed',     color: 'var(--danger)',       bg: 'var(--danger-light)' },
+  uploaded:   { label: 'Queued',    color: 'var(--text-muted)',  bg: 'var(--surface-2)' },
+  processing: { label: 'Analyzing', color: 'var(--warning)',     bg: 'var(--warning-light)' },
+  completed:  { label: 'Completed', color: 'var(--success)',     bg: 'var(--success-light)' },
+  failed:     { label: 'Failed',    color: 'var(--danger)',      bg: 'var(--danger-light)' },
 }
 
 const RISK_META = {
-  low:    { label: 'Low risk',    color: 'var(--risk-low)' },
+  low:    { label: 'Low risk',    color: 'var(--risk-low)'    },
   medium: { label: 'Medium risk', color: 'var(--risk-medium)' },
-  high:   { label: 'High risk',  color: 'var(--risk-high)' },
+  high:   { label: 'High risk',   color: 'var(--risk-high)'   },
 }
 
 function StatusBadge({ status }) {
@@ -27,29 +29,24 @@ function StatusBadge({ status }) {
   )
 }
 
-function RiskBadge({ score }) {
-  if (!score) return null
-  const m = RISK_META[score] || RISK_META.medium
-  return <span className={styles.risk} style={{ color: m.color }}>{m.label}</span>
-}
-
 export default function Dashboard() {
   const { user } = useAuth()
   const navigate  = useNavigate()
-  const [docs, setDocs]     = useState([])
-  const [total, setTotal]   = useState(0)
-  const [page, setPage]     = useState(1)
+  const toast     = useToast()
+  const [docs, setDocs]       = useState([])
+  const [total, setTotal]     = useState(0)
+  const [page, setPage]       = useState(1)
   const [loading, setLoading] = useState(true)
 
   const load = async (p = 1) => {
-    setLoading(true)
+    if (p === 1) setLoading(true)
     try {
       const r = await documentsApi.list(p, 10)
       setDocs(r.data.items)
       setTotal(r.data.total)
       setPage(p)
-    } catch (e) {
-      console.error(e)
+    } catch {
+      toast.error('Failed to load documents.')
     } finally {
       setLoading(false)
     }
@@ -57,11 +54,24 @@ export default function Dashboard() {
 
   useEffect(() => { load() }, [])
 
-  // Auto-refresh if any doc is processing
   useEffect(() => {
     const hasProcessing = docs.some(d => d.status === 'processing' || d.status === 'uploaded')
     if (!hasProcessing) return
-    const t = setInterval(() => load(page), 5000)
+    const t = setInterval(async () => {
+      try {
+        const r = await documentsApi.list(page, 10)
+        const newDocs = r.data.items
+        const justCompleted = newDocs.filter(nd =>
+          nd.status === 'completed' &&
+          docs.find(od => od.id === nd.id)?.status !== 'completed'
+        )
+        justCompleted.forEach(d =>
+          toast.success(`Analysis complete: ${d.original_filename}`)
+        )
+        setDocs(newDocs)
+        setTotal(r.data.total)
+      } catch {}
+    }, 5000)
     return () => clearInterval(t)
   }, [docs, page])
 
@@ -79,11 +89,8 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {loading && docs.length === 0 ? (
-        <div className={styles.empty}>
-          <div className={styles.emptyIcon}>↻</div>
-          <p>Loading…</p>
-        </div>
+      {loading ? (
+        <SkeletonTable rows={5} />
       ) : docs.length === 0 ? (
         <div className={styles.empty}>
           <div className={styles.emptyIcon}>📄</div>
@@ -116,7 +123,11 @@ export default function Dashboard() {
                     <StatusBadge status={doc.status} />
                   </div>
                   <div className={styles.td} style={{ flex: 1 }}>
-                    <RiskBadge score={doc.analysis?.risk_score} />
+                    {doc.analysis?.risk_score && (
+                      <span className={styles.risk} style={{ color: RISK_META[doc.analysis.risk_score]?.color }}>
+                        {RISK_META[doc.analysis.risk_score]?.label}
+                      </span>
+                    )}
                   </div>
                   <div className={styles.td} style={{ flex: 1 }}>
                     <span className={styles.date}>
@@ -128,6 +139,9 @@ export default function Dashboard() {
                       <button className={styles.viewBtn} onClick={() => navigate(`/documents/${doc.id}`)}>
                         View
                       </button>
+                    )}
+                    {doc.status === 'failed' && (
+                      <span className={styles.failedHint} title={doc.error_message}>Failed</span>
                     )}
                   </div>
                 </div>

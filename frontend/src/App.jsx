@@ -1,14 +1,17 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
-import AppLayout from './components/layout/AppLayout'
-import AuthPage   from './pages/Auth/AuthPage'
-import Dashboard  from './pages/Dashboard/Dashboard'
-import Upload     from './pages/Upload/Upload'
-import Analysis   from './pages/Analysis/Analysis'
-import AdminLayout from './pages/Admin/AdminLayout'
-import AdminDashboard from './pages/Admin/AdminDashboard'
-import AdminUsers from './pages/Admin/AdminUsers'
-import AdminDocuments from './pages/Admin/AdminDocuments'
+import { ToastProvider } from './components/ui/Toast'
+import ErrorBoundary from './components/ui/ErrorBoundary'
+import AppLayout       from './components/layout/AppLayout'
+import AuthPage        from './pages/Auth/AuthPage'
+import Dashboard       from './pages/Dashboard/Dashboard'
+import Upload          from './pages/Upload/Upload'
+import Analysis        from './pages/Analysis/Analysis'
+import AdminLayout     from './pages/Admin/AdminLayout'
+import AdminDashboard  from './pages/Admin/AdminDashboard'
+import AdminUsers      from './pages/Admin/AdminUsers'
+import AdminDocuments  from './pages/Admin/AdminDocuments'
+import NotFound        from './pages/NotFound/NotFound'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -32,18 +35,18 @@ function AppRoutes() {
 
       <Route path="/" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
         <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="upload"    element={<Upload />} />
-        <Route path="documents/:id" element={<Analysis />} />
+        <Route path="dashboard"     element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+        <Route path="upload"        element={<ErrorBoundary><Upload /></ErrorBoundary>} />
+        <Route path="documents/:id" element={<ErrorBoundary><Analysis /></ErrorBoundary>} />
       </Route>
 
       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-        <Route index       element={<AdminDashboard />} />
-        <Route path="users"     element={<AdminUsers />} />
-        <Route path="documents" element={<AdminDocuments />} />
+        <Route index            element={<ErrorBoundary><AdminDashboard /></ErrorBoundary>} />
+        <Route path="users"     element={<ErrorBoundary><AdminUsers /></ErrorBoundary>} />
+        <Route path="documents" element={<ErrorBoundary><AdminDocuments /></ErrorBoundary>} />
       </Route>
 
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
@@ -51,7 +54,9 @@ function AppRoutes() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
+      <ToastProvider>
+        <AppRoutes />
+      </ToastProvider>
     </AuthProvider>
   )
 }

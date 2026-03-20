@@ -1,26 +1,30 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { documentsApi } from '../../api/client'
+import { useToast } from '../../components/ui/Toast'
 import styles from './Upload.module.css'
 
 export default function Upload() {
-  const navigate   = useNavigate()
-  const inputRef   = useRef()
-  const [file, setFile]       = useState(null)
-  const [drag, setDrag]       = useState(false)
-  const [status, setStatus]   = useState('idle') // idle | uploading | success | error
-  const [result, setResult]   = useState(null)
-  const [error, setError]     = useState('')
+  const navigate = useNavigate()
+  const toast    = useToast()
+  const inputRef = useRef()
+  const [file, setFile]     = useState(null)
+  const [drag, setDrag]     = useState(false)
+  const [status, setStatus] = useState('idle')
+  const [result, setResult] = useState(null)
+  const [error, setError]   = useState('')
 
   const accept = (f) => {
     if (!f) return
     const ext = f.name.split('.').pop().toLowerCase()
     if (!['pdf', 'docx'].includes(ext)) {
       setError('Only PDF and DOCX files are supported.')
+      toast.error('Only PDF and DOCX files are supported.')
       return
     }
     if (f.size > 20 * 1024 * 1024) {
       setError('File must be under 20 MB.')
+      toast.error('File too large. Maximum size is 20 MB.')
       return
     }
     setFile(f)
@@ -43,9 +47,12 @@ export default function Upload() {
       const r = await documentsApi.upload(fd)
       setResult(r.data)
       setStatus('success')
+      toast.success('Document uploaded! Analysis is starting…')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Upload failed. Please try again.')
+      const msg = err.response?.data?.detail || 'Upload failed. Please try again.'
+      setError(msg)
       setStatus('error')
+      toast.error(msg)
     }
   }
 
@@ -84,26 +91,15 @@ export default function Upload() {
                 onDrop={onDrop}
                 onClick={() => !file && inputRef.current.click()}
               >
-                <input
-                  ref={inputRef}
-                  type="file"
-                  accept=".pdf,.docx"
-                  className={styles.hidden}
-                  onChange={(e) => accept(e.target.files[0])}
-                />
+                <input ref={inputRef} type="file" accept=".pdf,.docx" className={styles.hidden} onChange={(e) => accept(e.target.files[0])} />
                 {file ? (
                   <div className={styles.filePreview}>
-                    <div className={styles.fileIcon}>
-                      {file.name.endsWith('.pdf') ? '📄' : '📝'}
-                    </div>
+                    <div className={styles.fileIcon}>{file.name.endsWith('.pdf') ? '📄' : '📝'}</div>
                     <div className={styles.fileInfo}>
                       <span className={styles.fileName}>{file.name}</span>
                       <span className={styles.fileSize}>{(file.size / 1024).toFixed(0)} KB</span>
                     </div>
-                    <button
-                      className={styles.removeBtn}
-                      onClick={(e) => { e.stopPropagation(); reset() }}
-                    >✕</button>
+                    <button className={styles.removeBtn} onClick={(e) => { e.stopPropagation(); reset() }}>✕</button>
                   </div>
                 ) : (
                   <div className={styles.dropContent}>
@@ -114,17 +110,9 @@ export default function Upload() {
                   </div>
                 )}
               </div>
-
               {error && <div className={styles.errorMsg}>{error}</div>}
-
-              <button
-                className={styles.primaryBtn}
-                onClick={upload}
-                disabled={!file || status === 'uploading'}
-              >
-                {status === 'uploading' ? (
-                  <><span className={styles.spinner} />Uploading…</>
-                ) : 'Analyze Contract'}
+              <button className={styles.primaryBtn} onClick={upload} disabled={!file || status === 'uploading'}>
+                {status === 'uploading' ? <><span className={styles.spinner} />Uploading…</> : 'Analyze Contract'}
               </button>
             </>
           )}
@@ -146,7 +134,6 @@ export default function Upload() {
               </div>
             </div>
           ))}
-
           <div className={styles.gdprNote}>
             <span className={styles.gdprIcon}>🔒</span>
             <p>Documents are processed securely and stored in your private account only.</p>

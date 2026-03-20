@@ -1,0 +1,22 @@
+.page {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; background: var(--bg); padding: 40px;
+}
+.card {
+  text-align: center; max-width: 380px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.code {
+  font-size: 80px; font-weight: 700; color: var(--border);
+  letter-spacing: -4px; line-height: 1; font-family: var(--font-mono);
+}
+.title { font-size: 22px; font-weight: 600; color: var(--text-primary); }
+.sub   { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+.btn {
+  margin-top: 8px; padding: 10px 24px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: background 0.15s;
+}
+.btn:hover { background: var(--accent-hover); }

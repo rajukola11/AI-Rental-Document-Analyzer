@@ -142,3 +142,4 @@
 .pageBtn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .pageBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 .pageInfo { font-size: 13px; color: var(--text-muted); }
+.failedHint { font-size: 12px; color: var(--danger); font-weight: 500; }

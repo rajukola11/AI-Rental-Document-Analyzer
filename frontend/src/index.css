@@ -69,3 +69,57 @@ input, textarea, select { font-family: var(--font); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+/* ── Page loading state ─────────────────────────────────────────────────────── */
+.page-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* ── Mobile responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 0px; }
+
+  /* Hide sidebar on mobile — hamburger would go here in a future iteration */
+  .shell aside { display: none; }
+
+  /* Stack upload layout */
+  .layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Full-width table rows become cards */
+  .thead { display: none !important; }
+  .tr {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 14px 16px !important;
+    gap: 6px !important;
+  }
+  .td { flex: none !important; width: 100% !important; }
+
+  /* Stats grid 2 cols on mobile */
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Auth page */
+  .left { display: none; }
+  .right { width: 100% !important; }
+
+  /* Admin grid */
+  .gridTwo {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsGrid {
+    grid-template-columns: 1fr !important;
+  }
+  .content { padding: 16px !important; }
+}
