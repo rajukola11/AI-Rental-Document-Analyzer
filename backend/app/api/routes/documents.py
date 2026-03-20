@@ -28,7 +28,8 @@ ALLOWED_MIME = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
 }
 
-LOCAL_UPLOAD_DIR = Path(__file__).resolve().parents[4] / "uploads"
+# LOCAL_UPLOAD_DIR = Path(__file__).resolve().parents[4] / "uploads"
+LOCAL_UPLOAD_DIR = Path("/tmp/uploads")
 LOCAL_UPLOAD_DIR.mkdir(exist_ok=True)
 
 
