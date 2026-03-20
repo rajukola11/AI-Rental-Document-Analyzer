@@ -10,8 +10,6 @@ if _env_file.exists():
         if line and not line.startswith("#") and "=" in line:
             key, _, value = line.partition("=")
             os.environ.setdefault(key.strip(), value.strip())
-else:
-    raise RuntimeError(f".env file not found at {_env_file}")
 
 broker  = os.environ.get("CELERY_BROKER_URL", "")
 backend = os.environ.get("CELERY_RESULT_BACKEND", "")
