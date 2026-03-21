@@ -1,6 +1,5 @@
 from functools import lru_cache
 from typing import List
-
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -47,9 +46,14 @@ class Settings(BaseSettings):
 
     # ── OpenAI ───────────────────────────────────────────────────────────────
     openai_api_key: str
-    openai_model: str = "gpt-4o"
+    openai_model: str = "gpt-4o-mini"
     openai_max_tokens: int = 4096
     openai_temperature: float = 0.2
+
+    # ── Stripe ───────────────────────────────────────────────────────────────
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_publishable_key: str = ""
 
     # ── File Upload ───────────────────────────────────────────────────────────
     max_upload_size_mb: int = 20
@@ -81,7 +85,6 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    """Cached settings instance — import this everywhere."""
     return Settings()
 
 

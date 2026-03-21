@@ -5,11 +5,11 @@ import styles from './AppLayout.module.css'
 const NAV = [
   { to: '/dashboard', icon: '▦', label: 'Dashboard' },
   { to: '/upload',    icon: '↑', label: 'Upload' },
+  { to: '/billing',   icon: '💳', label: 'Billing' },
 ]
 
 export default function AppLayout() {
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
 
   return (
     <div className={styles.shell}>
@@ -64,9 +64,7 @@ export default function AppLayout() {
           <div className={styles.headerLeft} />
           <div className={styles.headerRight}>
             <span className={styles.roleBadge}>{user?.role}</span>
-            <span className={styles.uploadsCount}>
-              {user?.uploads_used} uploads
-            </span>
+            <span className={styles.uploadsCount}>{user?.uploads_used} uploads</span>
           </div>
         </header>
         <main className={styles.content}>

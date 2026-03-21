@@ -24,13 +24,11 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version="1.0.0",
         description="AI-powered German rental contract analyzer",
-        docs_url="/docs"  if settings.debug else None,
+        docs_url="/docs"   if settings.debug else None,
         redoc_url="/redoc" if settings.debug else None,
         lifespan=lifespan,
     )
 
-    # In production ALLOWED_ORIGINS = https://your-app.vercel.app
-    # In dev ALLOWED_ORIGINS = http://localhost:5173
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -45,27 +43,21 @@ def create_app() -> FastAPI:
         response = await call_next(request)
         elapsed = round((time.perf_counter() - start) * 1000, 2)
         response.headers["X-Process-Time-Ms"] = str(elapsed)
-        logger.debug(
-            "%s %s → %s (%.2fms)",
-            request.method, request.url.path, response.status_code, elapsed,
-        )
+        logger.debug("%s %s -> %s (%.2fms)", request.method, request.url.path, response.status_code, elapsed)
         return response
 
     app.add_exception_handler(AppError, app_error_handler)
     app.add_exception_handler(Exception, unhandled_error_handler)
 
-    from app.api.routes import auth, documents, admin
+    from app.api.routes import auth, documents, admin, payments
     app.include_router(auth.router,      prefix="/auth",      tags=["auth"])
     app.include_router(documents.router, prefix="/documents", tags=["documents"])
     app.include_router(admin.router,     prefix="/admin",     tags=["admin"])
+    app.include_router(payments.router,  prefix="/payments",  tags=["payments"])
 
     @app.get("/health", tags=["system"])
     async def health():
-        return {
-            "status": "ok",
-            "app":    settings.app_name,
-            "env":    settings.app_env,
-        }
+        return {"status": "ok", "app": settings.app_name, "env": settings.app_env}
 
     return app
 

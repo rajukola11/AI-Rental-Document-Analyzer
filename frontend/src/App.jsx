@@ -2,16 +2,17 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { ToastProvider } from './components/ui/Toast'
 import ErrorBoundary from './components/ui/ErrorBoundary'
-import AppLayout       from './components/layout/AppLayout'
-import AuthPage        from './pages/Auth/AuthPage'
-import Dashboard       from './pages/Dashboard/Dashboard'
-import Upload          from './pages/Upload/Upload'
-import Analysis        from './pages/Analysis/Analysis'
-import AdminLayout     from './pages/Admin/AdminLayout'
-import AdminDashboard  from './pages/Admin/AdminDashboard'
-import AdminUsers      from './pages/Admin/AdminUsers'
-import AdminDocuments  from './pages/Admin/AdminDocuments'
-import NotFound        from './pages/NotFound/NotFound'
+import AppLayout      from './components/layout/AppLayout'
+import AuthPage       from './pages/Auth/AuthPage'
+import Dashboard      from './pages/Dashboard/Dashboard'
+import Upload         from './pages/Upload/Upload'
+import Analysis       from './pages/Analysis/Analysis'
+import Billing        from './pages/Billing/Billing'
+import AdminLayout    from './pages/Admin/AdminLayout'
+import AdminDashboard from './pages/Admin/AdminDashboard'
+import AdminUsers     from './pages/Admin/AdminUsers'
+import AdminDocuments from './pages/Admin/AdminDocuments'
+import NotFound       from './pages/NotFound/NotFound'
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
@@ -38,6 +39,7 @@ function AppRoutes() {
         <Route path="dashboard"     element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
         <Route path="upload"        element={<ErrorBoundary><Upload /></ErrorBoundary>} />
         <Route path="documents/:id" element={<ErrorBoundary><Analysis /></ErrorBoundary>} />
+        <Route path="billing"       element={<ErrorBoundary><Billing /></ErrorBoundary>} />
       </Route>
 
       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
