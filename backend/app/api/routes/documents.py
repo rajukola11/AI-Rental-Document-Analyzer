@@ -1,4 +1,5 @@
 import io
+import os
 import uuid
 from pathlib import Path
 
@@ -23,8 +24,19 @@ ALLOWED_MIME = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
 }
 
-LOCAL_UPLOAD_DIR = Path(__file__).resolve().parents[4] / "uploads"
-LOCAL_UPLOAD_DIR.mkdir(exist_ok=True)
+
+def _get_local_upload_dir() -> Path:
+    """
+    Returns a writable upload directory.
+    - In production (Docker/Railway): uses /tmp/uploads
+    - In local dev: uses backend/uploads/
+    """
+    if settings.app_env == "production":
+        d = Path("/tmp/uploads")
+    else:
+        d = Path(__file__).resolve().parents[4] / "uploads"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
 
 
 def _validate_upload(file: UploadFile, size: int) -> None:
@@ -35,15 +47,22 @@ def _validate_upload(file: UploadFile, size: int) -> None:
 
 
 def _store_file(contents: bytes, content_type: str, user_id: uuid.UUID) -> str:
+    """
+    In production with real AWS creds → upload to S3.
+    In dev with dummy creds → save locally.
+    """
     aws_dummy = settings.aws_access_key_id in ("", "your-aws-access-key", "dummy")
+
     if not aws_dummy:
         from app.services.s3_service import upload_file as s3_upload
         return s3_upload(io.BytesIO(contents), content_type, user_id)
 
+    # Local fallback
+    upload_dir = _get_local_upload_dir()
     ext = ALLOWED_MIME[content_type]
     filename = f"{uuid.uuid4()}.{ext}"
-    dest = LOCAL_UPLOAD_DIR / str(user_id)
-    dest.mkdir(exist_ok=True)
+    dest = upload_dir / str(user_id)
+    dest.mkdir(parents=True, exist_ok=True)
     (dest / filename).write_bytes(contents)
     local_key = f"local://{user_id}/{filename}"
     logger.info("Stored file locally", extra={"path": local_key})
@@ -51,7 +70,6 @@ def _store_file(contents: bytes, content_type: str, user_id: uuid.UUID) -> str:
 
 
 def _queue_task(document_id: str) -> None:
-    import os
     os.environ.setdefault("CELERY_BROKER_URL", settings.celery_broker_url)
     os.environ.setdefault("CELERY_RESULT_BACKEND", settings.celery_result_backend)
     from app.workers.tasks import process_document
@@ -73,7 +91,7 @@ async def upload_document(
     user_id = uuid.UUID(payload["sub"])
     user = db.query(User).filter(User.id == user_id).first()
 
-    # ── Enforce upload limits ─────────────────────────────────────────────────
+    # Enforce upload limits
     if not user.can_upload:
         raise ForbiddenError(
             f"You have used all {user.uploads_used} free analyses. "
@@ -94,7 +112,7 @@ async def upload_document(
         content_type=file.content_type,
     )
 
-    # Deduct credit: paid first, then free
+    # Deduct paid credit first, then count against free tier
     if user.upload_credits > 0:
         user.upload_credits -= 1
     increment_uploads(db, user_id)
