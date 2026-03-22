@@ -6,9 +6,10 @@ import styles from './AuthPage.module.css'
 export default function AuthPage({ mode }) {
   const { login, register } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm]     = useState({ email: '', password: '', full_name: '' })
-  const [error, setError]   = useState('')
+  const [form, setForm]       = useState({ email: '', password: '', full_name: '' })
+  const [error, setError]     = useState('')
   const [loading, setLoading] = useState(false)
+  const [registered, setRegistered] = useState(false)
 
   const isLogin = mode === 'login'
 
@@ -21,15 +22,43 @@ export default function AuthPage({ mode }) {
     try {
       if (isLogin) {
         await login(form.email, form.password)
+        navigate('/dashboard')
       } else {
         await register(form.email, form.password, form.full_name)
+        // Don't redirect — show "check your email" screen instead
+        setRegistered(true)
       }
-      navigate('/dashboard')
     } catch (err) {
       setError(err.response?.data?.detail || 'Something went wrong.')
     } finally {
       setLoading(false)
     }
+  }
+
+  // After successful registration, show "check your email" instead of the form
+  if (registered) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.right}>
+          <div className={styles.formBox}>
+            <div style={{ textAlign: 'center', padding: '16px 0' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>✉️</div>
+              <h2 style={{ marginBottom: '8px' }}>Check your inbox</h2>
+              <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '24px' }}>
+                We sent a verification link to <strong>{form.email}</strong>.
+                Click it to activate your account before uploading contracts.
+              </p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                Wrong email?{' '}
+                <Link to="/register" style={{ color: 'var(--primary)' }}>
+                  Register again
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -67,6 +67,17 @@ class Settings(BaseSettings):
     def max_upload_size_bytes(self) -> int:
         return self.max_upload_size_mb * 1024 * 1024
 
+    # ── Resend (email) ────────────────────────────────────────────────────────
+    resend_api_key: str = ""
+    email_from: str = "noreply@yourdomain.com"
+    frontend_url: str = "http://localhost:5173"    # used to build verification links
+
+    # ── Email verification ────────────────────────────────────────────────────
+    verification_token_expire_hours: int = 24
+
+    # ── Disposable email blocking ─────────────────────────────────────────────
+    block_disposable_emails: bool = True
+
     # ── GDPR ─────────────────────────────────────────────────────────────────
     delete_files_after_processing: bool = False
 

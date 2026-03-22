@@ -1,0 +1,60 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.text {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #92400e;
+  line-height: 1.5;
+  min-width: 200px;
+}
+
+.text strong {
+  color: #78350f;
+}
+
+.actions {
+  flex-shrink: 0;
+}
+
+.resendBtn {
+  background: #f59e0b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+
+.resendBtn:hover {
+  opacity: 0.85;
+}
+
+.sending {
+  font-size: 0.85rem;
+  color: #92400e;
+}
+
+.sent {
+  font-size: 0.85rem;
+  color: #15803d;
+  font-weight: 600;
+}

@@ -2,11 +2,14 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { documentsApi } from '../../api/client'
 import { useToast } from '../../components/ui/Toast'
+import { useAuth } from '../../hooks/useAuth'
+import VerificationBanner from '../../components/ui/VerificationBanner'
 import styles from './Upload.module.css'
 
 export default function Upload() {
   const navigate = useNavigate()
   const toast    = useToast()
+  const { user } = useAuth()
   const inputRef = useRef()
   const [file, setFile]     = useState(null)
   const [drag, setDrag]     = useState(false)
@@ -64,6 +67,10 @@ export default function Upload() {
         <h1 className={styles.title}>Upload Contract</h1>
         <p className={styles.sub}>Upload a German rental contract (PDF or DOCX) for AI analysis.</p>
       </div>
+
+      {user && !user.is_verified && (
+        <VerificationBanner email={user.email} />
+      )}
 
       <div className={styles.layout}>
         <div className={styles.uploadCard}>

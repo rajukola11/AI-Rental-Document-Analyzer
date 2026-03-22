@@ -4,6 +4,7 @@ import { documentsApi } from '../../api/client'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { SkeletonTable } from '../../components/ui/Skeleton'
+import VerificationBanner from '../../components/ui/VerificationBanner'
 import styles from './Dashboard.module.css'
 
 const STATUS_META = {
@@ -88,6 +89,10 @@ export default function Dashboard() {
           + Upload Contract
         </button>
       </div>
+
+      {user && !user.is_verified && (
+        <VerificationBanner email={user.email} />
+      )}
 
       {loading ? (
         <SkeletonTable rows={5} />

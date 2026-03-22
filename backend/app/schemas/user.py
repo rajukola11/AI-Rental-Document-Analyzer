@@ -30,6 +30,7 @@ class UserResponse(BaseModel):
     full_name: str | None
     role: str
     is_active: bool
+    is_verified: bool
     uploads_used: int
     created_at: datetime
 
@@ -49,6 +50,7 @@ class UserListItem(BaseModel):
     full_name: str | None
     role: str
     is_active: bool
+    is_verified: bool
     uploads_used: int
     created_at: datetime
 

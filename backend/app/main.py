@@ -15,6 +15,10 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up %s [%s]", settings.app_name, settings.app_env)
+    # Warm the disposable email blocklist in the background so the first
+    # registration request doesn't pay the GitHub fetch cost.
+    from app.services.disposable_email_service import preload_blocklist
+    preload_blocklist()
     yield
     logger.info("Shutting down %s", settings.app_name)
 

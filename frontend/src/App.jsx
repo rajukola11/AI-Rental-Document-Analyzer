@@ -4,6 +4,7 @@ import { ToastProvider } from './components/ui/Toast'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import AppLayout      from './components/layout/AppLayout'
 import AuthPage       from './pages/Auth/AuthPage'
+import VerifyEmail    from './pages/VerifyEmail/VerifyEmail'
 import Dashboard      from './pages/Dashboard/Dashboard'
 import Upload         from './pages/Upload/Upload'
 import Analysis       from './pages/Analysis/Analysis'
@@ -31,8 +32,9 @@ function AdminRoute({ children }) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login"    element={<AuthPage mode="login" />} />
-      <Route path="/register" element={<AuthPage mode="register" />} />
+      <Route path="/login"         element={<AuthPage mode="login" />} />
+      <Route path="/register"      element={<AuthPage mode="register" />} />
+      <Route path="/verify-email"  element={<VerifyEmail />} />
 
       <Route path="/" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
         <Route index element={<Navigate to="/dashboard" replace />} />

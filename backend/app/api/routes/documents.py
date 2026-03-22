@@ -91,6 +91,13 @@ async def upload_document(
     user_id = uuid.UUID(payload["sub"])
     user = db.query(User).filter(User.id == user_id).first()
 
+    # Enforce email verification
+    if not user.is_verified:
+        raise ForbiddenError(
+            "Please verify your email address before uploading documents. "
+            "Check your inbox for the verification link."
+        )
+
     # Enforce upload limits
     if not user.can_upload:
         raise ForbiddenError(
