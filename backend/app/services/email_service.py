@@ -64,6 +64,7 @@ def send_email(to: str, subject: str, html: str) -> None:
     Errors are logged but NOT re-raised — a failed email should never
     crash registration or break the request cycle.
     """
+    print("🚨 RESEND KEY DEBUG:", settings.resend_api_key)
     try:
         if settings.resend_api_key:
             _send_via_resend(to, subject, html)
