@@ -30,6 +30,7 @@ def _send_via_resend(to: str, subject: str, html: str) -> None:
         headers={
             "Authorization": f"Bearer {settings.resend_api_key}",
             "Content-Type": "application/json",
+            "User-Agent": "rental-document-analyzer/1.0",
         },
         method="POST",
     )
@@ -64,7 +65,6 @@ def send_email(to: str, subject: str, html: str) -> None:
     Errors are logged but NOT re-raised — a failed email should never
     crash registration or break the request cycle.
     """
-    print("🚨 RESEND KEY DEBUG:", settings.resend_api_key)
     try:
         if settings.resend_api_key:
             _send_via_resend(to, subject, html)
