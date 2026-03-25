@@ -42,9 +42,11 @@ export const documentsApi = {
   upload: (formData) => api.post('/documents/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
-  list: (page = 1, pageSize = 20) =>
-    api.get('/documents', { params: { page, page_size: pageSize } }),
-  get: (id) => api.get(`/documents/${id}`),
+  list:      (page = 1, pageSize = 20) => api.get('/documents', { params: { page, page_size: pageSize } }),
+  get:       (id)  => api.get(`/documents/${id}`),
+  delete:    (id)  => api.delete(`/documents/${id}`),
+  reanalyze: (id)  => api.post(`/documents/${id}/reanalyze`),
+  keep:      (id)  => api.post(`/documents/${id}/keep`),
 }
 
 export const adminApi = {

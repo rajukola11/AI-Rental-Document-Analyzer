@@ -110,7 +110,70 @@ def send_verification_email(to: str, full_name: str | None, token: str) -> None:
     send_email(to, "Verify your email — Rental Document Analyzer", html)
 
 
+def send_deletion_warning_email(
+    to: str,
+    full_name: str | None,
+    filename: str,
+    document_id: str,
+    expires_at,
+) -> None:
+    from app.core.config import settings
+    name = full_name or "there"
+    keep_url = f"{settings.frontend_url}/documents/{document_id}?keep=1"
+    expires_str = expires_at.strftime("%B %d, %Y at %H:%M UTC") if expires_at else "soon"
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: sans-serif; max-width: 560px; margin: 0 auto; padding: 32px; color: #111;">
+      <h2 style="margin-bottom: 8px;">⚠️ Your document will be deleted in 24 hours</h2>
+      <p>Hi {name},</p>
+      <p>For your privacy, your uploaded document will be permanently deleted in <strong>24 hours</strong>:</p>
+      <p style="background: #f3f4f6; border-radius: 8px; padding: 12px 16px; font-weight: 600;">
+        📄 {filename}
+      </p>
+      <p style="color: #666;">Scheduled deletion: <strong>{expires_str}</strong></p>
+      <p>If you want to keep this document for another 3 days, click below:</p>
+      <p style="margin: 32px 0;">
+        <a href="{keep_url}"
+           style="background: #2563EB; color: #fff; padding: 12px 24px;
+                  border-radius: 6px; text-decoration: none; font-weight: 600;">
+          Keep document for 3 more days
+        </a>
+      </p>
+      <p style="color: #666; font-size: 14px;">
+        If you don't click the button, the document will be automatically deleted.
+        Your analysis results will still be visible.
+      </p>
+    </body>
+    </html>
+    """
+    send_email(to, f"Your document '{filename}' will be deleted in 24 hours", html)
+    name = full_name or "there"
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <body style="font-family: sans-serif; max-width: 560px; margin: 0 auto; padding: 32px; color: #111;">
+      <h2>Welcome to Rental Document Analyzer 🏠</h2>
+      <p>Hi {name},</p>
+      <p>Your email is verified. You're all set — you have
+         <strong>2 free analyses</strong> to get started.</p>
+      <p>Upload your first rental contract and we'll analyze every clause,
+         flag the risks, and explain everything in plain English.</p>
+      <p style="margin: 32px 0;">
+        <a href="{settings.frontend_url}/upload"
+           style="background: #2563EB; color: #fff; padding: 12px 24px;
+                  border-radius: 6px; text-decoration: none; font-weight: 600;">
+          Upload a contract
+        </a>
+      </p>
+    </body>
+    </html>
+    """
+    send_email(to, "Welcome to Rental Document Analyzer!", html)
+
 def send_welcome_email(to: str, full_name: str | None) -> None:
+    from app.core.config import settings
     name = full_name or "there"
     html = f"""
     <!DOCTYPE html>

@@ -12,6 +12,9 @@ class DocumentResponse(BaseModel):
     content_type: str
     status: str
     error_message: str | None
+    is_deleted: bool
+    deleted_at: datetime | None
+    expires_at: datetime | None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -22,6 +25,7 @@ class DocumentUploadResponse(BaseModel):
     id: uuid.UUID
     original_filename: str
     status: str
+    expires_at: datetime | None
     message: str
 
 
@@ -37,6 +41,7 @@ class AdminDocumentItem(BaseModel):
     user_id: uuid.UUID
     original_filename: str
     status: str
+    is_deleted: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}

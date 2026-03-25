@@ -109,3 +109,30 @@
   border-radius: var(--radius-sm); padding: 16px 20px; font-size: 14px;
 }
 .noRisks span { font-size: 20px; color: var(--success); }
+.keepBtn {
+  background: var(--primary, #2563eb);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.keepBtn:hover { opacity: 0.85; }
+.keepBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.deleteBtn {
+  background: transparent;
+  border: 1px solid var(--danger, #dc2626);
+  color: var(--danger, #dc2626);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.deleteBtn:hover { background: var(--danger-light, #fef2f2); }
+.deleteBtn:disabled { opacity: 0.5; cursor: not-allowed; }
