@@ -54,6 +54,11 @@ class StorageError(AppError):
     detail = "File storage service is unavailable. Please try again."
 
 
+class ServiceUnavailableError(AppError):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    detail = "A downstream service is temporarily unavailable. Please try again shortly."
+
+
 # ── FastAPI exception handlers ────────────────────────────────────────────────
 
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:

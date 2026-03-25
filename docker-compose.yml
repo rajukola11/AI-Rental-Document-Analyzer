@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
 
-  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
   db:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -19,23 +19,34 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s   # Give PG time to initialise before counting failures
 
-  # ── Redis ───────────────────────────────────────────────────────────────────
+  # ── Redis ────────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: redis-server --save 60 1 --loglevel warning
+    # AOF persistence: fsync every second — good balance of durability vs speed.
+    # If you don't need durability (tasks are re-creatable), remove --appendonly.
+    command: >
+      redis-server
+      --save 60 1
+      --appendonly yes
+      --appendfsync everysec
+      --loglevel warning
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     ports:
       - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 5s          # Check frequently — the API depends on this
+      timeout: 3s
+      retries: 10           # Allow up to 50s for Redis to start before declaring unhealthy
+      start_period: 5s
 
-  # ── FastAPI backend ─────────────────────────────────────────────────────────
+  # ── FastAPI backend ──────────────────────────────────────────────────────────
   api:
     build:
       context: ./backend
@@ -48,16 +59,23 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_healthy
+        condition: service_healthy   # API will not start until Redis passes healthcheck
     volumes:
-      - ./backend:/app          # hot-reload in dev; remove in prod
+      - uploads:/app/uploads         # Shared volume so worker can read uploaded files
     command: >
       uvicorn app.main:app
       --host 0.0.0.0
       --port 8000
-      --reload
+      --workers 2
+      --log-level info
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
-  # ── Celery worker ───────────────────────────────────────────────────────────
+  # ── Celery worker ────────────────────────────────────────────────────────────
   worker:
     build:
       context: ./backend
@@ -70,14 +88,38 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./backend:/app
+      - uploads:/app/uploads         # Shared with api so local files are accessible
     command: >
       celery -A app.workers.celery_app worker
       --loglevel=info
       --concurrency=2
       --queues=documents
+      --max-tasks-per-child=100
+      --heartbeat-interval=10
+    healthcheck:
+      # Celery inspect ping — returns non-zero if no workers respond
+      test: ["CMD", "celery", "-A", "app.workers.celery_app", "inspect", "ping", "--timeout", "5"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
 
-  # ── Flower (Celery UI) ──────────────────────────────────────────────────────
+  # ── Celery Beat (scheduled tasks) ────────────────────────────────────────────
+  beat:
+    build:
+      context: ./backend
+      target: runtime
+    restart: unless-stopped
+    env_file: ./backend/.env
+    depends_on:
+      - redis
+      - db
+    command: >
+      celery -A app.workers.celery_app beat
+      --loglevel=info
+      --scheduler celery.beat:PersistentScheduler
+
+  # ── Flower (Celery monitoring UI) ────────────────────────────────────────────
   flower:
     build:
       context: ./backend
@@ -91,7 +133,9 @@ services:
     command: >
       celery -A app.workers.celery_app flower
       --port=5555
+      --basic_auth=${FLOWER_USER:-admin}:${FLOWER_PASSWORD:-changeme}
 
 volumes:
   postgres_data:
   redis_data:
+  uploads:          

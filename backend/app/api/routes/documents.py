@@ -3,11 +3,11 @@ import os
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, File, Query, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, File, Query, UploadFile, status
 
 from app.core.config import settings
 from app.core.dependencies import CurrentUser, DBSession
-from app.core.exceptions import FileTooLargeError, ForbiddenError, NotFoundError, UnsupportedFileTypeError
+from app.core.exceptions import FileTooLargeError, ForbiddenError, NotFoundError, ServiceUnavailableError, UnsupportedFileTypeError
 from app.core.logging import get_logger
 from app.schemas.analysis import DocumentWithAnalysis
 from app.schemas.document import DocumentListResponse, DocumentUploadResponse
@@ -58,9 +58,77 @@ def _store_file(contents: bytes, content_type: str, user_id: uuid.UUID) -> str:
     return local_key
 
 
-def _queue_process(document_id: str) -> None:
-    from app.workers.tasks import process_document
-    process_document.delay(document_id)
+# ── Resilient queue helper ────────────────────────────────────────────────────
+
+def _queue_process(document_id: str, background_tasks: BackgroundTasks | None = None) -> str:
+    """
+    Queue the document-processing Celery task.
+
+    Strategy (industry-grade, 3-layer fallback):
+      1. Try sending to Celery/Redis — fast path, zero blocking.
+      2. If broker is temporarily down: retry up to 3× with back-off (covers
+         brief blips without failing the upload).
+      3. If broker is still unreachable: fall back to an in-process
+         BackgroundTask so the upload never returns a 500 to the user.
+         The task runs in the same process — acceptable for a startup,
+         where availability > strict decoupling.
+
+    Returns the dispatch method used ("celery" | "background_fallback").
+    """
+    from app.workers.broker_health import wait_for_broker
+
+    # ── Fast path: broker is healthy ─────────────────────────────────────────
+    if wait_for_broker(retries=3, delay=0.4):
+        try:
+            from app.workers.tasks import process_document
+            process_document.delay(document_id)
+            logger.info("Task queued via Celery", extra={"document_id": document_id})
+            return "celery"
+        except Exception as exc:
+            # Celery connect succeeded but send failed (very rare race).
+            # Fall through to background fallback rather than crashing.
+            logger.error(
+                "Celery send failed despite healthy ping — falling back: %s", exc,
+                extra={"document_id": document_id},
+            )
+
+    # ── Fallback: run in-process via BackgroundTasks ──────────────────────────
+    logger.warning(
+        "Broker unreachable — dispatching document processing as BackgroundTask",
+        extra={"document_id": document_id},
+    )
+
+    if background_tasks is not None:
+        background_tasks.add_task(_run_processing_in_background, document_id)
+        return "background_fallback"
+
+    # Last resort: fire a daemon thread (upload response already sent)
+    import threading
+    t = threading.Thread(
+        target=_run_processing_in_background,
+        args=(document_id,),
+        daemon=True,
+        name=f"doc-proc-{document_id[:8]}",
+    )
+    t.start()
+    return "thread_fallback"
+
+
+def _run_processing_in_background(document_id: str) -> None:
+    """
+    Thin wrapper that calls the Celery task function directly (bypasses broker).
+    Used only when the broker is unreachable.
+    """
+    try:
+        from app.workers.tasks import process_document
+        # Call the underlying function, not .delay() — no broker needed.
+        process_document(document_id)
+    except Exception as exc:
+        logger.error(
+            "Background fallback processing failed: %s", exc,
+            extra={"document_id": document_id},
+            exc_info=True,
+        )
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────
@@ -71,7 +139,12 @@ def _queue_process(document_id: str) -> None:
     status_code=status.HTTP_202_ACCEPTED,
     summary="Upload a rental contract PDF or DOCX for analysis",
 )
-async def upload_document(payload: CurrentUser, db: DBSession, file: UploadFile = File(...)):
+async def upload_document(
+    payload: CurrentUser,
+    db: DBSession,
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+):
     from app.models.user import User
     user_id = uuid.UUID(payload["sub"])
     user = db.query(User).filter(User.id == user_id).first()
@@ -103,8 +176,11 @@ async def upload_document(payload: CurrentUser, db: DBSession, file: UploadFile 
     increment_uploads(db, user_id)
     db.commit()
 
-    _queue_process(str(doc.id))
-    logger.info("Document uploaded", extra={"document_id": str(doc.id)})
+    dispatch_method = _queue_process(str(doc.id), background_tasks)
+    logger.info(
+        "Document uploaded",
+        extra={"document_id": str(doc.id), "dispatch": dispatch_method},
+    )
 
     return DocumentUploadResponse(
         id=doc.id,
@@ -150,11 +226,9 @@ def delete_document(document_id: uuid.UUID, payload: CurrentUser, db: DBSession)
     if doc.is_deleted:
         return {"message": "Document already deleted."}
 
-    # Delete physical file in background to avoid blocking the request
     from app.workers.tasks import auto_delete_document
     auto_delete_document.delay(str(document_id))
 
-    # Immediately soft-delete DB record so UI updates instantly
     soft_delete_document(db, document_id)
     db.commit()
 
@@ -197,7 +271,6 @@ def keep_document(document_id: uuid.UUID, payload: CurrentUser, db: DBSession):
 
     doc = extend_document_expiry(db, document_id)
 
-    # Reschedule warning + deletion tasks with new expiry
     from app.workers.tasks import _schedule_expiry_tasks
     _schedule_expiry_tasks(db, document_id)
 
