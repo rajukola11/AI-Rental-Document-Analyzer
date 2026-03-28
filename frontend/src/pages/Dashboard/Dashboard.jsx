@@ -175,7 +175,7 @@ export default function Dashboard() {
                   </div>
                   <div className={styles.td} style={{ flex: 2, gap: '6px', display: 'flex', flexWrap: 'wrap' }}>
                     {doc.status === 'completed' && !doc.is_deleted && (
-                      <button className={styles.viewBtn} onClick={() => navigate(`/documents/${doc.id}`)}>
+                      <button className={styles.viewBtn} onClick={() => navigate(`/app/documents/${doc.id}`)}>
                         View
                       </button>
                     )}

@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { ToastProvider } from './components/ui/Toast'
 import ErrorBoundary from './components/ui/ErrorBoundary'
@@ -20,6 +20,11 @@ function PrivateRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="page-loading">Loading…</div>
   return user ? children : <Navigate to="/login" replace />
+}
+
+function NavigateToDoc() {
+  const { id } = useParams()
+  return <Navigate to={`/app/documents/${id}`} replace />
 }
 
 function AdminRoute({ children }) {
@@ -54,6 +59,7 @@ function AppRoutes() {
       <Route path="/dashboard"     element={<PrivateRoute><Navigate to="/app/dashboard" replace /></PrivateRoute>} />
       <Route path="/upload"        element={<PrivateRoute><Navigate to="/app/upload" replace /></PrivateRoute>} />
       <Route path="/billing"       element={<PrivateRoute><Navigate to="/app/billing" replace /></PrivateRoute>} />
+      <Route path="/documents/:id" element={<PrivateRoute><NavigateToDoc /></PrivateRoute>} />
 
       {/* ── Admin ── */}
       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
