@@ -61,18 +61,6 @@ def create_checkout(body: CheckoutRequest, payload: CurrentUser, db: DBSession):
         cancel_url=f"{frontend}/billing?cancelled=true",
     )
 
-    # Create pending payment record
-    payment = Payment(
-        user_id=user.id,
-        stripe_session_id="pending",  # updated by webhook
-        amount_cents=pkg["amount_cents"],
-        currency="eur",
-        credits=pkg["credits"],
-        status="pending",
-    )
-    db.add(payment)
-    db.flush()
-
     return CheckoutResponse(
         checkout_url=checkout_url,
         credits=pkg["credits"],
