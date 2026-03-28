@@ -6,10 +6,33 @@ logger = get_logger(__name__)
 
 CURRENCY = "eur"
 
+# ── Credit packages ───────────────────────────────────────────────────────────
+# bonus_credits are added on the FIRST purchase only (handled in webhook)
 CREDIT_PACKAGES = [
-    {"credits": 1,  "amount_cents": 300,  "label": "1 analysis  — €3"},
-    {"credits": 5,  "amount_cents": 1200, "label": "5 analyses  — €12 (save 20%)"},
-    {"credits": 10, "amount_cents": 2000, "label": "10 analyses — €20 (save 33%)"},
+    {
+        "credits": 1,
+        "amount_cents": 100,
+        "label": "Pay-As-You-Go — €1 per analysis",
+        "bonus_credits": 0,
+        "popular": False,
+        "best_value": False,
+    },
+    {
+        "credits": 6,
+        "amount_cents": 400,
+        "label": "6 analyses — €4 (save 43%)",
+        "bonus_credits": 1,          # +1 on first purchase → 7 total
+        "popular": True,
+        "best_value": False,
+    },
+    {
+        "credits": 20,
+        "amount_cents": 1000,
+        "label": "20 analyses — €10 (save 57%)",
+        "bonus_credits": 3,          # +3 on first purchase → 23 total
+        "popular": False,
+        "best_value": True,
+    },
 ]
 
 

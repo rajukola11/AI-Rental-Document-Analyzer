@@ -19,7 +19,12 @@
   align-items: center;
   gap: 10px;
   margin-bottom: auto;
+  text-decoration: none;
+  opacity: 0.95;
+  transition: opacity 0.15s;
 }
+
+.brand:hover { opacity: 1; }
 
 .logoMark {
   width: 36px;

@@ -6,9 +6,42 @@ import api from '../../api/client'
 import styles from './Billing.module.css'
 
 const PACKAGES = [
-  { credits: 1,  amount_cents: 300,  label: '1 analysis',  price: '€3.00',  save: null,    popular: false },
-  { credits: 5,  amount_cents: 1200, label: '5 analyses',  price: '€12.00', save: 'Save 20%', popular: true },
-  { credits: 10, amount_cents: 2000, label: '10 analyses', price: '€20.00', save: 'Save 33%', popular: false },
+  {
+    credits: 1,
+    amount_cents: 100,
+    label: '1 analysis',
+    price: '€1.00',
+    perAnalysis: '€1.00 per analysis',
+    save: null,
+    popular: false,
+    bestValue: false,
+    bonus: 0,
+    tag: '💳 Pay-As-You-Go',
+  },
+  {
+    credits: 6,
+    amount_cents: 400,
+    label: '6 analyses',
+    price: '€4.00',
+    perAnalysis: '~€0.57 per analysis',
+    save: 'Save 43%',
+    popular: true,
+    bestValue: false,
+    bonus: 1,
+    tag: '🔥 Most Popular',
+  },
+  {
+    credits: 20,
+    amount_cents: 1000,
+    label: '20 analyses',
+    price: '€10.00',
+    perAnalysis: '~€0.43 per analysis',
+    save: 'Save 57%',
+    popular: false,
+    bestValue: true,
+    bonus: 3,
+    tag: '🚀 Best Value',
+  },
 ]
 
 export default function Billing() {
@@ -89,19 +122,43 @@ export default function Billing() {
         </div>
       </div>
 
+      {/* Free plan info banner */}
+      <div className={styles.freeBanner}>
+        <span className={styles.freeBannerIcon}>🆓</span>
+        <div>
+          <div className={styles.freeBannerTitle}>Free Plan — 2 analyses included</div>
+          <div className={styles.freeBannerSub}>Every account gets 2 free analyses. No credit card required.</div>
+        </div>
+      </div>
+
       {/* Pricing packages */}
       <div className={styles.sectionTitle}>Purchase credits</div>
       <div className={styles.packages}>
         {PACKAGES.map(pkg => (
-          <div key={pkg.credits} className={`${styles.packageCard} ${pkg.popular ? styles.popular : ''}`}>
+          <div
+            key={pkg.credits}
+            className={`${styles.packageCard} ${pkg.popular ? styles.popular : ''} ${pkg.bestValue ? styles.bestValue : ''}`}
+          >
             {pkg.popular && <div className={styles.popularBadge}>Most popular</div>}
+            {pkg.bestValue && <div className={styles.bestValueBadge}>Best value</div>}
+
+            <div className={styles.packageTag}>{pkg.tag}</div>
             <div className={styles.packageCredits}>{pkg.credits}</div>
             <div className={styles.packageLabel}>{pkg.label}</div>
             <div className={styles.packagePrice}>{pkg.price}</div>
-            {pkg.save && <div className={styles.packageSave}>{pkg.save}</div>}
-            <div className={styles.packagePer}>
-              €{(pkg.amount_cents / pkg.credits / 100).toFixed(2)} per analysis
-            </div>
+
+            {pkg.save && <div className={styles.packageSave}>💚 {pkg.save}</div>}
+            <div className={styles.packagePer}>{pkg.perAnalysis}</div>
+
+            {pkg.bonus > 0 && (
+              <div className={styles.packageBonus}>
+                🎁 +{pkg.bonus} bonus on first purchase
+                <div className={styles.packageBonusTotal}>
+                  → {pkg.credits + pkg.bonus} total analyses
+                </div>
+              </div>
+            )}
+
             <button
               className={styles.buyBtn}
               onClick={() => purchase(pkg)}

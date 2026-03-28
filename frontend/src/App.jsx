@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth'
 import { ToastProvider } from './components/ui/Toast'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import AppLayout      from './components/layout/AppLayout'
+import LandingPage    from './pages/Landing/LandingPage'
 import AuthPage       from './pages/Auth/AuthPage'
 import VerifyEmail    from './pages/VerifyEmail/VerifyEmail'
 import Dashboard      from './pages/Dashboard/Dashboard'
@@ -32,18 +33,29 @@ function AdminRoute({ children }) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login"         element={<AuthPage mode="login" />} />
-      <Route path="/register"      element={<AuthPage mode="register" />} />
-      <Route path="/verify-email"  element={<VerifyEmail />} />
+      {/* ── Public landing ── */}
+      <Route path="/" element={<LandingPage />} />
 
-      <Route path="/" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
+      {/* ── Auth ── */}
+      <Route path="/login"        element={<AuthPage mode="login" />} />
+      <Route path="/register"     element={<AuthPage mode="register" />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+
+      {/* ── App (authenticated) ── */}
+      <Route path="/app" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
+        <Route index element={<Navigate to="/app/dashboard" replace />} />
         <Route path="dashboard"     element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
         <Route path="upload"        element={<ErrorBoundary><Upload /></ErrorBoundary>} />
         <Route path="documents/:id" element={<ErrorBoundary><Analysis /></ErrorBoundary>} />
         <Route path="billing"       element={<ErrorBoundary><Billing /></ErrorBoundary>} />
       </Route>
 
+      {/* ── Legacy redirects — keep old /dashboard links working ── */}
+      <Route path="/dashboard"     element={<PrivateRoute><Navigate to="/app/dashboard" replace /></PrivateRoute>} />
+      <Route path="/upload"        element={<PrivateRoute><Navigate to="/app/upload" replace /></PrivateRoute>} />
+      <Route path="/billing"       element={<PrivateRoute><Navigate to="/app/billing" replace /></PrivateRoute>} />
+
+      {/* ── Admin ── */}
       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
         <Route index            element={<ErrorBoundary><AdminDashboard /></ErrorBoundary>} />
         <Route path="users"     element={<ErrorBoundary><AdminUsers /></ErrorBoundary>} />

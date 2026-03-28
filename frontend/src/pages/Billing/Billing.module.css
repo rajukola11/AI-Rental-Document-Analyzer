@@ -1,4 +1,4 @@
-.page { max-width: 800px; }
+.page { max-width: 860px; }
 .pageHeader { margin-bottom: 28px; }
 .title { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
 .sub   { font-size: 13px; color: var(--text-muted); }
@@ -8,7 +8,7 @@
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: 24px 28px;
   display: flex; align-items: center; gap: 0;
-  box-shadow: var(--shadow-sm); margin-bottom: 32px;
+  box-shadow: var(--shadow-sm); margin-bottom: 20px;
 }
 .usageStat { display: flex; flex-direction: column; gap: 4px; padding: 0 28px; }
 .usageStat:first-child { padding-left: 0; }
@@ -18,6 +18,17 @@
 .usageRight { margin-left: auto; }
 .canUpload  { font-size: 13px; font-weight: 500; color: var(--success); background: var(--success-light); padding: 6px 14px; border-radius: 20px; }
 .cantUpload { font-size: 13px; font-weight: 500; color: var(--warning); background: var(--warning-light); padding: 6px 14px; border-radius: 20px; }
+
+/* Free banner */
+.freeBanner {
+  display: flex; align-items: center; gap: 14px;
+  background: #F0FDF4; border: 1px solid #BBF7D0;
+  border-radius: var(--radius-md); padding: 16px 20px;
+  margin-bottom: 28px;
+}
+.freeBannerIcon { font-size: 28px; flex-shrink: 0; }
+.freeBannerTitle { font-size: 14px; font-weight: 600; color: #14532D; margin-bottom: 2px; }
+.freeBannerSub   { font-size: 12.5px; color: #166534; }
 
 .sectionTitle { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 14px; }
 
@@ -30,19 +41,34 @@
   box-shadow: var(--shadow-sm); position: relative; transition: box-shadow 0.2s;
 }
 .packageCard:hover { box-shadow: var(--shadow-md); }
-.popular { border-color: var(--accent); border-width: 2px; }
+.popular   { border-color: var(--accent); border-width: 2px; }
+.bestValue { border-color: #7C3AED; border-width: 2px; }
 
 .popularBadge {
   position: absolute; top: -11px;
   background: var(--accent); color: #fff;
   font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px;
 }
+.bestValueBadge {
+  position: absolute; top: -11px;
+  background: #7C3AED; color: #fff;
+  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px;
+}
 
+.packageTag     { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
 .packageCredits { font-size: 48px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); letter-spacing: -2px; line-height: 1; }
 .packageLabel   { font-size: 13px; color: var(--text-secondary); }
 .packagePrice   { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-top: 4px; }
 .packageSave    { font-size: 11px; font-weight: 600; color: var(--success); background: var(--success-light); padding: 2px 8px; border-radius: 20px; }
 .packagePer     { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+.packageBonus {
+  font-size: 11.5px; font-weight: 500; color: #92400E;
+  background: #FEF3C7; border: 1px solid #FDE68A;
+  border-radius: var(--radius-sm); padding: 6px 10px;
+  width: 100%; text-align: center; line-height: 1.5;
+}
+.packageBonusTotal { font-weight: 700; color: #78350F; margin-top: 2px; }
 
 .buyBtn {
   width: 100%; margin-top: 12px;

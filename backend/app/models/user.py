@@ -18,6 +18,7 @@ class User(UUIDMixin, TimestampMixin, Base):
     is_active:      Mapped[bool]     = mapped_column(Boolean,     nullable=False, default=True)
     uploads_used:   Mapped[int]      = mapped_column(nullable=False, default=0)
     upload_credits: Mapped[int]      = mapped_column(nullable=False, default=0, server_default='0')
+    has_purchased:  Mapped[bool]     = mapped_column(Boolean,     nullable=False, default=False, server_default='false')
 
     # ── Email verification ────────────────────────────────────────────────────
     is_verified:                  Mapped[bool]           = mapped_column(Boolean,      nullable=False, default=False, server_default='false')

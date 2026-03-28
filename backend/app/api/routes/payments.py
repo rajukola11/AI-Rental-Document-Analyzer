@@ -105,19 +105,25 @@ async def stripe_webhook(request: Request, db: DBSession, stripe_signature: str 
 
         from app.models.user import User
 
-        # Grant credits to user
+        # Find matching package to get bonus_credits
+        pkg = next((p for p in CREDIT_PACKAGES if p["credits"] == credits), None)
+        bonus = pkg["bonus_credits"] if pkg else 0
+
+        # Grant credits to user (+ first-purchase bonus if applicable)
         user = db.query(User).filter(User.id == uuid.UUID(user_id)).first()
         if user:
-            user.upload_credits += credits
+            bonus_granted = bonus if not user.has_purchased else 0
+            user.upload_credits += credits + bonus_granted
+            user.has_purchased = True
 
-        # Record payment
+        # Record payment (store base credits; bonus tracked separately)
         payment = Payment(
             user_id=uuid.UUID(user_id),
             stripe_session_id=session_id,
             stripe_payment_intent=payment_intent,
             amount_cents=session["amount_total"],
             currency=session["currency"],
-            credits=credits,
+            credits=credits + (bonus if not user.has_purchased else 0),
             status="completed",
         )
         db.add(payment)

@@ -64,10 +64,10 @@ export default function AuthPage({ mode }) {
   return (
     <div className={styles.page}>
       <div className={styles.left}>
-        <div className={styles.brand}>
+        <Link to="/" className={styles.brand}>
           <span className={styles.logoMark}>RA</span>
           <span className={styles.logoText}>RentalAI</span>
-        </div>
+        </Link>
         <div className={styles.hero}>
           <h1 className={styles.heroTitle}>Understand your rental contract in minutes</h1>
           <p className={styles.heroSub}>AI-powered analysis of German rental contracts. Get plain-English summaries, risk flags, and clause explanations.</p>
