@@ -29,6 +29,8 @@ celery_app = Celery(
 default_exchange   = Exchange("default",   type="direct")
 documents_exchange = Exchange("documents", type="direct")
 
+redis_ssl_options = {"ssl_cert_reqs": None}
+
 celery_app.conf.update(
     # Serialization
     task_serializer="json",
@@ -43,7 +45,10 @@ celery_app.conf.update(
     task_track_started=True,
     task_acks_late=True,                # Only ack after task succeeds — prevents message loss
     task_reject_on_worker_lost=True,    # Re-queue if worker dies mid-task
-    worker_prefetch_multiplier=1,       # One task at a time per worker
+    worker_prefetch_multiplier=1,    # One task at a time per worker
+
+    broker_use_ssl=redis_ssl_options,
+    redis_backend_use_ssl=redis_ssl_options,   
 
     # ── Broker connection resilience ──────────────────────────────────────────
     broker_connection_retry=True,
