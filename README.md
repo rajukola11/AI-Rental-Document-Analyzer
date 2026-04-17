@@ -1,3 +1,8 @@
+## 🚀 Live Demo
+👉 https://ai-rental-document-analyzer.vercel.app/
+
+---
+
 # Rental Document Analyzer
 
 AI-powered SaaS for analyzing German rental contracts. Upload a PDF/DOCX, get back a structured summary, key clauses, risk highlights, and a plain-English explanation.
