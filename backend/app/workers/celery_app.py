@@ -29,9 +29,11 @@ celery_app = Celery(
 default_exchange   = Exchange("default",   type="direct")
 documents_exchange = Exchange("documents", type="direct")
 
-redis_ssl_options = {"ssl_cert_reqs": None}
+# ── SSL: only enable when URL scheme is rediss:// ─────────────────────────────
+_use_ssl = broker.startswith("rediss://")
+redis_ssl_options = {"ssl_cert_reqs": None} if _use_ssl else None
 
-celery_app.conf.update(
+conf = dict(
     # Serialization
     task_serializer="json",
     result_serializer="json",
@@ -43,12 +45,9 @@ celery_app.conf.update(
 
     # Task reliability
     task_track_started=True,
-    task_acks_late=True,                # Only ack after task succeeds — prevents message loss
-    task_reject_on_worker_lost=True,    # Re-queue if worker dies mid-task
-    worker_prefetch_multiplier=1,    # One task at a time per worker
-
-    broker_use_ssl=redis_ssl_options,
-    redis_backend_use_ssl=redis_ssl_options,   
+    task_acks_late=True,
+    task_reject_on_worker_lost=True,
+    worker_prefetch_multiplier=1,
 
     # ── Broker connection resilience ──────────────────────────────────────────
     broker_connection_retry=True,
@@ -56,18 +55,18 @@ celery_app.conf.update(
     broker_connection_max_retries=10,
     broker_connection_timeout=10,
     broker_transport_options={
-        "visibility_timeout": 3600,     # Redis: re-queue tasks not acked within 1 hour
+        "visibility_timeout": 3600,
         "socket_timeout": 10,
         "socket_connect_timeout": 10,
         "socket_keepalive": True,
         "socket_keepalive_options": {},
         "retry_on_timeout": True,
-        "health_check_interval": 30,    # Ping broker every 30s to detect stale connections
+        "health_check_interval": 30,
     },
-    broker_pool_limit=10,               # Connection pool — avoids per-task connection overhead
+    broker_pool_limit=10,
 
     # ── Result backend ────────────────────────────────────────────────────────
-    result_expires=86400,               # Results expire after 24h — avoids backend bloat
+    result_expires=86400,
     result_backend_transport_options={
         "retry_policy": {"timeout": 5.0}
     },
@@ -88,6 +87,13 @@ celery_app.conf.update(
     },
 
     # ── Worker health ─────────────────────────────────────────────────────────
-    worker_max_tasks_per_child=100,     # Recycle worker every 100 tasks — prevents memory leaks
-    worker_max_memory_per_child=300_000, # Kill & recycle if worker exceeds 300 MB
+    worker_max_tasks_per_child=100,
+    worker_max_memory_per_child=300_000,
 )
+
+# Only add SSL config if actually using SSL
+if redis_ssl_options:
+    conf["broker_use_ssl"] = redis_ssl_options
+    conf["redis_backend_use_ssl"] = redis_ssl_options
+
+celery_app.conf.update(conf)
