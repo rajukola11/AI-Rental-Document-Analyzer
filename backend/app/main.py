@@ -33,6 +33,10 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    logger.info(
+        "Registering CORS middleware with origins: %s",
+        settings.cors_origins,
+    )
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,

@@ -1,6 +1,6 @@
 from functools import lru_cache
 from typing import List
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +22,20 @@ class Settings(BaseSettings):
     @property
     def cors_origins(self) -> List[str]:
         return [o.strip() for o in self.allowed_origins.split(",")]
+
+    @model_validator(mode="after")
+    def _log_cors_origins(self) -> "Settings":
+        # Print to stdout so the raw value is visible in Railway deployment logs
+        # even before the logging framework is initialised.
+        print(
+            f"[config] ALLOWED_ORIGINS env → allowed_origins={self.allowed_origins!r}",
+            flush=True,
+        )
+        print(
+            f"[config] Parsed cors_origins list → {self.cors_origins}",
+            flush=True,
+        )
+        return self
 
     # ── Database ─────────────────────────────────────────────────────────────
     database_url: str
