@@ -1,16 +1,3 @@
-"""
-tests/test_security.py
-
-Pytest test suite for app/core/security.py
-
-Covers:
-- hash_password / verify_password
-- create_access_token / create_refresh_token
-- decode_token (happy path, expiry, wrong secret, wrong algo, bad token)
-
-Settings are stubbed via tests/conftest.py — no real .env needed.
-"""
-
 import pytest
 from datetime import datetime, timezone
 from jose import jwt, JWTError
