@@ -1,12 +1,13 @@
 # ── Web framework ────────────────────────────────────────────────────────────
 fastapi==0.115.5
 uvicorn[standard]==0.32.1
-python-multipart==0.0.12          # file upload support
+python-multipart==0.0.12
 
 # ── Config & validation ───────────────────────────────────────────────────────
 pydantic==2.10.3
 pydantic-settings==2.6.1
 pydantic[email]
+
 # ── Database ──────────────────────────────────────────────────────────────────
 sqlalchemy==2.0.36
 psycopg2-binary==2.9.10
@@ -23,34 +24,29 @@ botocore==1.35.84
 # ── Task queue ────────────────────────────────────────────────────────────────
 celery==5.4.0
 redis==5.2.1
-flower==2.0.1                     # Celery monitoring UI
+flower==2.0.1
 
 # ── Document text extraction ──────────────────────────────────────────────────
 pdfplumber==0.11.4
 python-docx==1.1.2
-pytesseract==0.3.13               # OCR fallback
-Pillow==11.0.0                    # required by pytesseract
+pytesseract==0.3.13
+Pillow==11.0.0
 
 # ── AI ────────────────────────────────────────────────────────────────────────
 openai==1.57.4
-tiktoken==0.8.0                   # token counting
+tiktoken==0.8.0
 
 # ── HTTP client ───────────────────────────────────────────────────────────────
 httpx==0.28.1
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 python-dateutil==2.9.0
-tenacity==9.0.0                   # retry logic
+tenacity==9.0.0
 
-# ── Dev / testing (not installed in production) ───────────────────────────────
+# ── Dev / testing ─────────────────────────────────────────────────────────────
 pytest==8.3.4
 pytest-asyncio==0.24.0
-httpx==0.28.1                     #
 factory-boy==3.3.1
 
-stripe==11.1.0
-=======
-httpx==0.28.1                     # test client
-factory-boy==3.3.1
-
+# ── Payments ──────────────────────────────────────────────────────────────────
 stripe==11.1.0
