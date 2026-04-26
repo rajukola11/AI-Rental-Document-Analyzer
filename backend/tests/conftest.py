@@ -1,15 +1,14 @@
 """
 tests/conftest.py
 
-Patches app.core.config.settings before any app module is imported,
-so the test suite never needs real environment variables / .env files.
+Patches app.core.config.settings and app.core.logging before any app module
+is imported, so the test suite never needs real environment variables / .env files.
 """
 import sys
 import types
 import logging as _stdlib_logging
-from pathlib import Path
 
-BASE = str(Path(__file__).resolve().parents[1])
+BASE = "/home/raju/Downloads/AI-Rental-Document-Analyzer-master/backend"
 
 
 def _pkg(name: str, path: str) -> types.ModuleType:
@@ -82,13 +81,18 @@ class FakeSettings:
 
 _fake_settings = FakeSettings()
 
+# ── Config stub ───────────────────────────────────────────────────────────────
 _cfg = types.ModuleType("app.core.config")
 _cfg.__package__ = "app.core"
 _cfg.settings = _fake_settings
 _cfg.get_settings = lambda: _fake_settings
 sys.modules["app.core.config"] = _cfg
 
+# ── Logging stub ──────────────────────────────────────────────────────────────
+# Must include setup_logging because app/main.py does:
+#   from app.core.logging import get_logger, setup_logging
 _log = types.ModuleType("app.core.logging")
 _log.__package__ = "app.core"
 _log.get_logger = lambda name: _stdlib_logging.getLogger(name)
+_log.setup_logging = lambda: None          # ← required by app.main
 sys.modules["app.core.logging"] = _log
