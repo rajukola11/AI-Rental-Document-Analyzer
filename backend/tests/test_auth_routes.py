@@ -45,31 +45,17 @@ _pg.JSON = _JSON
 
 # ── DB + App setup ────────────────────────────────────────────────────────────
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 from unittest.mock import patch as _patch
 
 from app.db.base import Base
 from app.models import user as _u, document as _d, analysis as _a, payment as _p
+import sys, os as _os
+_sys_tests_dir = _os.path.dirname(_os.path.abspath(__file__))
+if _sys_tests_dir not in sys.path:
+    sys.path.insert(0, _sys_tests_dir)
+from db_fixtures import SHARED_TEST_ENGINE as _engine, SHARED_TEST_SESSION as _TestSession, shared_override_get_db as _override_get_db_fn
 from app.models.user import User
 from app.core.security import hash_password, create_refresh_token
-
-_engine = create_engine(
-    "sqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-Base.metadata.create_all(_engine)
-_TestSession = sessionmaker(bind=_engine, autocommit=False, autoflush=False, expire_on_commit=False)
-
-
-def _override_get_db():
-    db = _TestSession()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 with _patch("sqlalchemy.create_engine", return_value=_engine):
@@ -80,7 +66,7 @@ with _patch("app.services.disposable_email_service.preload_blocklist"):
     from app.main import app
 
 from app.db.session import get_db
-app.dependency_overrides[get_db] = _override_get_db
+app.dependency_overrides[get_db] = _override_get_db_fn
 
 from fastapi.testclient import TestClient
 

@@ -1,13 +1,16 @@
 """
-tests/conftest.py
-
 Patches app.core.config.settings and app.core.logging before any app module
 is imported, so the test suite never needs real environment variables / .env files.
+
+Also provides a shared SQLite engine used by all route test files to prevent
+cross-file interference when pytest collects them in the same session.
 """
 import sys
 import types
+import uuid as _uuid
 import logging as _stdlib_logging
 
+# ── Adjust BASE to match your machine ────────────────────────────────────────
 BASE = "/home/raju/Downloads/AI-Rental-Document-Analyzer-master/backend"
 
 
@@ -19,9 +22,31 @@ def _pkg(name: str, path: str) -> types.ModuleType:
     return m
 
 
-sys.modules.setdefault("app",      _pkg("app",      f"{BASE}/app"))
-sys.modules.setdefault("app.core", _pkg("app.core", f"{BASE}/app/core"))
+# Register all app sub-packages so imports like `from app.db.base import Base`
+# resolve through the filesystem instead of failing with ModuleNotFoundError.
+for _name, _rel in [
+    ("app",              "app"),
+    ("app.core",         "app/core"),
+    ("app.db",           "app/db"),
+    ("app.models",       "app/models"),
+    ("app.services",     "app/services"),
+    ("app.api",          "app/api"),
+    ("app.api.routes",   "app/api/routes"),
+    ("app.schemas",      "app/schemas"),
+    ("app.workers",      "app/workers"),
+]:
+    mod = _pkg(_name, f"{BASE}/{_rel}")
+    sys.modules.setdefault(_name, mod)
+    # Also wire as attribute of parent so monkeypatch.setattr traversal works
+    # e.g. "app.workers.tasks" → app.workers must be attr of app module
+    if "." in _name:
+        parent_name, child_attr = _name.rsplit(".", 1)
+        parent_mod = sys.modules.get(parent_name)
+        if parent_mod is not None and not hasattr(parent_mod, child_attr):
+            setattr(parent_mod, child_attr, sys.modules[_name])
 
+
+# ── FakeSettings ─────────────────────────────────────────────────────────────
 
 class FakeSettings:
     app_name = "Rental Document Analyzer"
@@ -89,10 +114,43 @@ _cfg.get_settings = lambda: _fake_settings
 sys.modules["app.core.config"] = _cfg
 
 # ── Logging stub ──────────────────────────────────────────────────────────────
-# Must include setup_logging because app/main.py does:
-#   from app.core.logging import get_logger, setup_logging
 _log = types.ModuleType("app.core.logging")
 _log.__package__ = "app.core"
 _log.get_logger = lambda name: _stdlib_logging.getLogger(name)
-_log.setup_logging = lambda: None          # ← required by app.main
+_log.setup_logging = lambda: None          # required by app.main
 sys.modules["app.core.logging"] = _log
+
+
+# ── SQLite-compatible type overrides ──────────────────────────────────────────
+# Must happen BEFORE any SQLAlchemy model is imported.
+
+import sqlalchemy.dialects.postgresql as _pg
+from sqlalchemy import types as _sa_types
+
+
+class _SqliteUUID(_sa_types.TypeDecorator):
+    impl = _sa_types.String(36)
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        return str(value) if value is not None else None
+
+    def process_result_value(self, value, dialect):
+        return _uuid.UUID(value) if value else None
+
+
+class _SqliteJSON(_sa_types.TypeDecorator):
+    impl = _sa_types.Text
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        import json
+        return json.dumps(value) if value is not None else None
+
+    def process_result_value(self, value, dialect):
+        import json
+        return json.loads(value) if value else None
+
+
+_pg.UUID = _SqliteUUID
+_pg.JSON = _SqliteJSON
